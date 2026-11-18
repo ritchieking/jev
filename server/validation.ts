@@ -36,6 +36,7 @@ const question = z.discriminatedUnion('type', [noul, choice, score])
 /** Unknown top-level keys (`model`, `assets`) are dropped: the proxy picks the model. */
 export function askSchema(maxQuestions: number) {
   return z.object({
+    fresh: z.boolean().optional(),
     state: structured,
     questions: z.record(question).refine(
       (questions) => {

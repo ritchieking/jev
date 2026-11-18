@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { buildApp } from './app'
 import { Budget } from './budget'
+import { AnswerCache } from './cache'
 import { loadEnv, type Env } from './env'
 import { RateLimiter } from './limits'
 
@@ -39,7 +40,8 @@ function setup(overrides: Partial<Env> = {}, upstream: () => Response = () => Re
   const budget = new Budget(env.dailyBudgetTokens, null)
   const limiter = new RateLimiter(env.ratePerMinute, env.ratePerDay)
   const fetchMock = vi.fn(async (..._args: Parameters<typeof fetch>) => upstream())
-  const app = buildApp({ env, budget, limiter, fetch: fetchMock })
+  const cache = new AnswerCache(env.cacheEntries, env.cacheTtlMs)
+  const app = buildApp({ env, budget, limiter, cache, fetch: fetchMock })
   const ask = (body: unknown = ASK, headers: Record<string, string> = { origin: ORIGIN }) =>
     app.request('/api/ask', {
       method: 'POST',
@@ -68,6 +70,38 @@ describe('POST /api/ask', () => {
     expect(sent.model).toBe('jev-1.14.0')
     expect(sent.assets).toBeUndefined()
     expect(Object.keys(sent.questions)).toEqual(['refund', 'team', 'urgency'])
+  })
+
+  it('answers a repeated request from memory without calling or paying Jev again', async () => {
+    const { ask, budget, fetchMock } = setup()
+    const first = await json(await ask())
+    const second = await json(await ask())
+    expect(first.meta.cached).toBe(false)
+    expect(second.meta.cached).toBe(true)
+    expect(second.answers).toEqual(first.answers)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(budget.snapshot().usedTokens).toBe(120)
+
+    // A different context is a different request.
+    await ask({ ...ASK, state: 'Something else entirely.' })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('asks Jev again when the page wants a fresh answer', async () => {
+    const { ask, fetchMock } = setup()
+    await ask()
+    const fresh = await json(await ask({ ...ASK, fresh: true }))
+    expect(fresh.meta.cached).toBe(false)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(JSON.parse(fetchMock.mock.calls[1]![1]!.body as string).fresh).toBeUndefined()
+  })
+
+  it('still serves remembered answers when the daily budget is spent', async () => {
+    const { ask, budget } = setup()
+    await ask()
+    expect(budget.reserve(budget.limitTokens - budget.snapshot().usedTokens)).toBe(true)
+    expect((await ask()).status).toBe(200)
+    expect((await ask({ ...ASK, state: 'New context.' })).status).toBe(429)
   })
 
   it('never returns the key', async () => {
@@ -168,7 +202,7 @@ describe('GET /api/health', () => {
     const res = await app.request('/api/health')
     const body = await json(res)
     expect(body).toMatchObject({ ok: true, configured: true, model: 'jev-1.14.0' })
-    expect(body.budget.limitTokens).toBe(23_809_523)
+    expect(body.budget.limitTokens).toBe(5_952_380)
     expect(JSON.stringify(body)).not.toContain('test-key')
   })
 })

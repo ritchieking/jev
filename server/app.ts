@@ -4,6 +4,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { z } from 'zod'
 import type { AskResponse, ErrorCode, ErrorResponse, Health } from '../shared/types'
 import type { Budget } from './budget'
+import { AnswerCache } from './cache'
 import type { Env } from './env'
 import type { RateLimiter } from './limits'
 import { parseAsk } from './validation'
@@ -12,6 +13,7 @@ export type Deps = {
   env: Env
   budget: Budget
   limiter: RateLimiter
+  cache: AnswerCache
   fetch: typeof fetch
 }
 
@@ -30,7 +32,7 @@ function fail(c: Context, status: ContentfulStatusCode, code: ErrorCode, error: 
   return c.json(body, status)
 }
 
-export function buildApp({ env, budget, limiter, fetch: fetchImpl }: Deps): Hono {
+export function buildApp({ env, budget, limiter, cache, fetch: fetchImpl }: Deps): Hono {
   const app = new Hono()
 
   app.use(
@@ -84,6 +86,13 @@ export function buildApp({ env, budget, limiter, fetch: fetchImpl }: Deps): Hono
     }
     const ask = parseAsk(json, env.maxQuestions)
 
+    // The same context and questions were already paid for once: answer from memory.
+    const cacheKey = AnswerCache.key(env.model, ask.state, ask.questions)
+    const remembered = ask.fresh ? undefined : cache.get(cacheKey)
+    if (remembered) {
+      return c.json({ ...remembered, meta: { ...remembered.meta, cached: true } } satisfies AskResponse)
+    }
+
     if (!env.apiKey) {
       return fail(c, 503, 'not_configured', 'The proxy has no Jev API key yet.')
     }
@@ -121,7 +130,8 @@ export function buildApp({ env, budget, limiter, fetch: fetchImpl }: Deps): Hono
         }
         billed = parsed.data.usage.input_tokens
         console.log(`ask ok questions=${Object.keys(ask.questions).length} in=${billed} ms=${upstreamMs}`)
-        const body = { ...parsed.data, meta: { upstream_ms: upstreamMs } } as AskResponse
+        const body = { ...parsed.data, meta: { upstream_ms: upstreamMs, cached: false } } as AskResponse
+        cache.set(cacheKey, body)
         return c.json(body)
       }
 

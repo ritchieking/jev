@@ -30,6 +30,8 @@ export type Question = NoulQuestion | ChoiceQuestion | ScoreQuestion
 export type AskRequest = {
   state: Structured
   questions: Record<string, Question>
+  /** Skip the proxy's answer cache and ask Jev anew. */
+  fresh?: boolean
 }
 
 export type NoulAnswer = { type: 'noul'; noul: number }
@@ -56,8 +58,11 @@ export type AskResponse = {
   model: string
   answers: Record<string, Answer>
   usage: { input_tokens: number; output_tokens: number }
-  /** Added by the proxy: round-trip time to TypeSafe, measured on the server. */
-  meta: { upstream_ms: number }
+  /**
+   * Added by the proxy. `upstream_ms` is the round trip to TypeSafe measured on the
+   * server; `cached` means this is a remembered answer and nothing was sent or billed.
+   */
+  meta: { upstream_ms: number; cached: boolean }
 }
 
 export type ErrorCode =

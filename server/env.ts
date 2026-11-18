@@ -13,6 +13,8 @@ export type Env = {
   ratePerMinute: number
   ratePerDay: number
   usageFile: string
+  cacheEntries: number
+  cacheTtlMs: number
 }
 
 function num(source: NodeJS.ProcessEnv, name: string, fallback: number): number {
@@ -24,7 +26,7 @@ function num(source: NodeJS.ProcessEnv, name: string, fallback: number): number 
 }
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const dailyBudgetUsd = num(source, 'DAILY_BUDGET_USD', 1)
+  const dailyBudgetUsd = num(source, 'DAILY_BUDGET_USD', 0.25)
   return {
     port: num(source, 'PORT', 8686),
     apiKey: source.TYPESAFE_API_KEY?.trim() || undefined,
@@ -41,5 +43,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     ratePerMinute: num(source, 'RATE_PER_MINUTE', 120),
     ratePerDay: num(source, 'RATE_PER_DAY', 3000),
     usageFile: source.USAGE_FILE?.trim() || 'data/usage.json',
+    cacheEntries: num(source, 'CACHE_ENTRIES', 5000),
+    cacheTtlMs: num(source, 'CACHE_TTL_HOURS', 24 * 7) * 60 * 60 * 1000,
   }
 }

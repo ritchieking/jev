@@ -9,5 +9,5 @@ export default defineConfig({
     // In dev the page and the proxy share an origin: /api/* goes to the local server.
     proxy: { '/api': process.env.JEV_PROXY ?? 'http://127.0.0.1:8686' },
   },
-  test: { environment: 'node', include: ['server/**/*.test.ts', 'shared/**/*.test.ts'] },
+  test: { environment: 'node', include: ['server/**/*.test.ts', 'shared/**/*.test.ts', 'src/**/*.test.ts'] },
 })

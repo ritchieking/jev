@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Budget } from './budget'
+import { AnswerCache } from './cache'
 import { RateLimiter } from './limits'
 
 describe('RateLimiter', () => {
@@ -60,5 +61,41 @@ describe('Budget', () => {
 
     writeFileSync(file, JSON.stringify({ day: '2026-11-01', usedTokens: 999 }))
     expect(new Budget(1000, file, () => day1).snapshot().usedTokens).toBe(0)
+  })
+})
+
+describe('AnswerCache', () => {
+  const response = (n: number) => ({
+    model: 'jev-1.14.0',
+    answers: { q: { type: 'noul' as const, noul: n } },
+    usage: { input_tokens: 1, output_tokens: 1 },
+    meta: { upstream_ms: 1, cached: false },
+  })
+
+  it('keys on model, context and questions', () => {
+    const a = AnswerCache.key('m1', 'state', { q: 1 })
+    expect(AnswerCache.key('m1', 'state', { q: 1 })).toBe(a)
+    expect(AnswerCache.key('m2', 'state', { q: 1 })).not.toBe(a)
+    expect(AnswerCache.key('m1', 'other', { q: 1 })).not.toBe(a)
+    expect(AnswerCache.key('m1', 'state', { q: 2 })).not.toBe(a)
+  })
+
+  it('drops the least recently used entry when full', () => {
+    const cache = new AnswerCache(2, 1000, () => 0)
+    cache.set('a', response(0.1))
+    cache.set('b', response(0.2))
+    cache.get('a')
+    cache.set('c', response(0.3))
+    expect(cache.get('a')).toBeDefined()
+    expect(cache.get('b')).toBeUndefined()
+    expect(cache.get('c')).toBeDefined()
+  })
+
+  it('forgets entries after the time limit', () => {
+    let now = 0
+    const cache = new AnswerCache(10, 1000, () => now)
+    cache.set('a', response(0.1))
+    now = 1001
+    expect(cache.get('a')).toBeUndefined()
   })
 })

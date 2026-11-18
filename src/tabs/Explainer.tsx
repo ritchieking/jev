@@ -40,13 +40,14 @@ export function Explainer({ mode }: { mode: Mode }) {
   const asking = liveHere?.kind === 'asking'
   const technical = mode === 'technical'
 
-  async function run() {
+  /** `fresh` skips the proxy's cache, so "again" really is a new answer. */
+  async function run(fresh: boolean) {
     const asked = state
     const stillCurrent = (current: Live | null) => current?.state === asked && current.status.kind === 'asking'
     setLive({ state: asked, status: { kind: 'asking' } })
     try {
-      const fresh = await ask({ state: asked, questions: QUESTIONS })
-      setLive((current) => (stillCurrent(current) ? { state: asked, status: { kind: 'done', response: fresh } } : current))
+      const answered = await ask({ state: asked, questions: QUESTIONS, fresh })
+      setLive((current) => (stillCurrent(current) ? { state: asked, status: { kind: 'done', response: answered } } : current))
     } catch (err) {
       const error = err instanceof ApiError ? err : new ApiError('server', 'Something went wrong. Try again.')
       setLive((current) => (stillCurrent(current) ? { state: asked, status: { kind: 'failed', error } } : current))
@@ -94,7 +95,7 @@ export function Explainer({ mode }: { mode: Mode }) {
                 onChange={(event) => setOwnText(event.target.value)}
               />
               <div className="run-row">
-                <button type="button" className="primary" onClick={run} disabled={asking || state === ''}>
+                <button type="button" className="primary" onClick={() => run(false)} disabled={asking || state === ''}>
                   {asking ? 'Asking…' : 'Ask Jev'}
                 </button>
                 <p className="muted">Your message is sent to Jev, and the answer comes back live.</p>
@@ -124,7 +125,7 @@ export function Explainer({ mode }: { mode: Mode }) {
             <p className="muted">All three questions go in one request.</p>
           )}
           {preset && (
-            <button type="button" className="quiet" onClick={run} disabled={asking}>
+            <button type="button" className="quiet" onClick={() => run(true)} disabled={asking}>
               Ask Jev again
             </button>
           )}

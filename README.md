@@ -39,7 +39,9 @@ Optional settings, with their defaults:
 
 | Variable | Default | What it does |
 |---|---|---|
-| `DAILY_BUDGET_USD` | `1` | Hard ceiling on Jev spend per UTC day |
+| `DAILY_BUDGET_USD` | `0.25` | Hard ceiling on Jev spend per UTC day |
+| `CACHE_ENTRIES` | `5000` | Answers remembered, so repeat requests cost nothing |
+| `CACHE_TTL_HOURS` | `168` | How long an answer is remembered |
 | `RATE_PER_MINUTE` | `120` | Requests per visitor per minute |
 | `RATE_PER_DAY` | `3000` | Requests per visitor per day |
 | `MAX_BODY_BYTES` | `32768` | Largest request the proxy will forward |

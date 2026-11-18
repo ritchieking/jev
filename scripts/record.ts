@@ -25,7 +25,7 @@ async function ask(request: AskRequest): Promise<AskResponse> {
 
 const responses: Record<string, AskResponse> = {}
 for (const preset of PRESETS) {
-  const response = await ask({ state: preset.state, questions: QUESTIONS })
+  const response = await ask({ state: preset.state, questions: QUESTIONS, fresh: true })
   responses[preset.id] = response
   const { refund, team, urgency } = response.answers
   console.log(

@@ -40,7 +40,8 @@
         "output_tokens": 69
       },
       "meta": {
-        "upstream_ms": 47
+        "upstream_ms": 47,
+        "cached": false
       }
     },
     "outage": {
@@ -81,7 +82,8 @@
         "output_tokens": 69
       },
       "meta": {
-        "upstream_ms": 55
+        "upstream_ms": 55,
+        "cached": false
       }
     },
     "profile": {
@@ -122,7 +124,8 @@
         "output_tokens": 69
       },
       "meta": {
-        "upstream_ms": 41
+        "upstream_ms": 41,
+        "cached": false
       }
     },
     "mixed": {
@@ -163,7 +166,8 @@
         "output_tokens": 69
       },
       "meta": {
-        "upstream_ms": 49
+        "upstream_ms": 49,
+        "cached": false
       }
     },
     "recruiter": {
@@ -204,7 +208,8 @@
         "output_tokens": 69
       },
       "meta": {
-        "upstream_ms": 41
+        "upstream_ms": 41,
+        "cached": false
       }
     }
   }

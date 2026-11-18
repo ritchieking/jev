@@ -20,3 +20,10 @@ Jev's docs index is `https://docs.typesafe.ai/llms.txt`; append `.md` to a docs 
 - The Explainer's sample messages and questions are in `src/data/sample.ts`; Jev's real answers
   to them are in `src/data/recorded.json`. After changing either, run `npm run record` (needs the
   `jev` service up) and reread each preset's `notice` against the new answers.
+- Jev credits are Ritchie's own money. Develop and browser-test against cached answers or a fake
+  upstream, not fresh requests. The proxy caches by (model, context, questions), so re-running
+  `npm run check-puzzles` or driving the page with a puzzle's shipped starter/solution sends nothing.
+- Puzzles live in `src/puzzles/puzzles.ts`; `engine.ts` holds the pure logic (validate, build the
+  request, turn answers into a result, print as code). Every puzzle ships a `starter` that must
+  fail and a `solution` that must pass against the real model: run `npm run check-puzzles` after
+  adding or changing one, and fix the puzzle (not the checker) if it disagrees.

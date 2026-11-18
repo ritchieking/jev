@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react'
 
-// Tabs live in the URL hash: GitHub Pages can't route real paths to index.html.
-// Tab links are plain `#name` anchors; this just reports which one is current.
-export function useHashTab<T extends string>(tabs: readonly T[]): T {
-  const read = (): T => {
-    const hash = window.location.hash.slice(1) as T
-    return tabs.includes(hash) ? hash : tabs[0]!
+// Navigation lives in the URL hash: GitHub Pages can't route real paths to index.html.
+// Links are plain anchors like `#puzzles` or `#puzzles/toppings`; this reports where we are.
+export function useHashTab<T extends string>(tabs: readonly T[]): { tab: T; rest: string } {
+  const read = () => {
+    const [first = '', ...more] = window.location.hash.slice(1).split('/')
+    const tab = tabs.includes(first as T) ? (first as T) : tabs[0]!
+    return { tab, rest: tab === first ? more.join('/') : '' }
   }
-  const [tab, setTab] = useState<T>(read)
+  const [location, setLocation] = useState(read)
 
   useEffect(() => {
-    const onChange = () => setTab(read())
+    const onChange = () => setLocation(read())
     window.addEventListener('hashchange', onChange)
     return () => window.removeEventListener('hashchange', onChange)
     // `tabs` is a module-level constant at every call site, so this never needs to re-run.
   }, [])
 
-  return tab
+  return location
 }

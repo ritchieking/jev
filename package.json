@@ -10,6 +10,7 @@
     "typecheck": "tsc -b && tsc -p tsconfig.server.json",
     "test": "vitest run",
     "record": "tsx scripts/record.ts",
+    "check-puzzles": "tsx scripts/check-puzzles.ts",
     "start": "tsx --env-file-if-exists=.env server/index.ts",
     "preview": "vite preview"
   },

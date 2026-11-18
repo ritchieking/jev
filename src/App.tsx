@@ -16,7 +16,7 @@ const LABELS: Record<Tab, string> = {
 export type Mode = 'conceptual' | 'technical'
 
 export function App() {
-  const tab = useHashTab(TABS)
+  const { tab, rest } = useHashTab(TABS)
   const [mode, setMode] = useState<Mode>('conceptual')
 
   return (
@@ -47,7 +47,7 @@ export function App() {
       <main>
         {tab === 'explainer' && <Explainer mode={mode} />}
         {tab === 'performance' && <Performance />}
-        {tab === 'puzzles' && <Puzzles />}
+        {tab === 'puzzles' && <Puzzles mode={mode} selected={rest} />}
       </main>
     </div>
   )
