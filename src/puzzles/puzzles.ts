@@ -1,4 +1,5 @@
-import type { CardQuestion, Option, Program, Puzzle, Result } from './types'
+import { CODE_PUZZLES } from './codePuzzles'
+import type { CardPuzzle, CardQuestion, Option, Program, Puzzle, Result } from './types'
 
 // Every puzzle's starter and solution are checked against the real model by
 // `npm run check-puzzles`: the starter has to get something wrong, and the solution
@@ -33,7 +34,8 @@ const collect = (questions: CardQuestion[], threshold = 0.5): Program => ({
   threshold,
 })
 
-const needsReply: Puzzle = {
+const needsReply: CardPuzzle = {
+  kind: 'cards',
   id: 'needs-reply',
   title: 'Does this need a reply?',
   brief:
@@ -88,7 +90,98 @@ const needsReply: Puzzle = {
     'Jev answers the question you wrote, not the one you meant. A complaint with no question mark still needs a reply, and a rhetorical question doesn’t. Asking directly for what you want to know works better than asking about a stand-in for it.',
 }
 
-const noneOfThese: Puzzle = {
+const houseRules: CardPuzzle = {
+  kind: 'cards',
+  id: 'house-rules',
+  title: 'House rules',
+  brief:
+    'A neighbourhood plant-swap group has two rules: every post has to be about plants, and plants can be swapped or given away but never sold. Decide which posts a moderator should remove.',
+  input: 'post',
+  result: {
+    kind: 'one',
+    outcomes: [
+      { id: 'remove', label: 'Remove' },
+      { id: 'keep', label: 'Keep' },
+    ],
+  },
+  cases: [
+    { id: 'free', state: 'Free spider plant babies, pick up from my porch on Elm Street.', expected: 'keep' },
+    { id: 'selling', state: 'Selling three monstera cuttings, $5 each.', expected: 'remove' },
+    { id: 'trade', state: 'Anyone want to trade a pothos for a snake plant?', expected: 'keep' },
+    { id: 'cat', state: 'Lost tabby cat near Elm Street. Please share!', expected: 'remove' },
+    { id: 'advice', state: 'My fiddle leaf fig keeps dropping leaves. Any advice?', expected: 'keep' },
+    { id: 'shop', state: 'Grand opening of my plant shop this Saturday, 20% off everything.', expected: 'remove' },
+    { id: 'plumber', state: 'Does anyone know a good plumber?', expected: 'remove' },
+  ],
+  starter: {
+    questions: [noul('breaks_rules', 'Does this post break the group’s rules?')],
+    rules: [{ uid: 'r1', when: { question: 'breaks_rules', op: 'gte', value: 0.5 }, then: outcome('remove') }],
+    otherwise: outcome('keep'),
+    threshold: 0.5,
+  },
+  solution: {
+    questions: [
+      noul(
+        'breaks_rules',
+        'The group has two rules: every post must be about plants, and plants may be swapped or given away but never sold. Does this post break a rule?',
+      ),
+    ],
+    rules: [{ uid: 'r1', when: { question: 'breaks_rules', op: 'gte', value: 0.5 }, then: outcome('remove') }],
+    otherwise: outcome('keep'),
+    threshold: 0.5,
+  },
+  hint: 'You know the group’s rules because you just read them. Has Jev read them?',
+  lesson:
+    'Jev knows only what is in the request. It had never seen this group’s rules, so it judged each post against rules in general, and nothing looked wrong with selling a plant. Anything an answer depends on has to be written into the question or the context.',
+}
+
+const sureEnough: CardPuzzle = {
+  kind: 'cards',
+  id: 'sure-enough',
+  title: 'Sure enough to act',
+  brief:
+    'A subscription service cancels automatically when a customer clearly asks for it. When a customer only sounds like they might leave, a person should follow up instead. Everything else needs nothing.',
+  input: 'message',
+  result: {
+    kind: 'one',
+    outcomes: [
+      { id: 'cancel', label: 'Cancel it' },
+      { id: 'follow_up', label: 'A person follows up' },
+      { id: 'nothing', label: 'Do nothing' },
+    ],
+  },
+  cases: [
+    { id: 'today', state: 'Please cancel my subscription today.', expected: 'cancel' },
+    { id: 'card', state: 'Can you update the card on my account?', expected: 'nothing' },
+    { id: 'worth-it', state: 'I’m not sure this is worth it for me anymore.', expected: 'follow_up' },
+    { id: 'stop-billing', state: 'I want to cancel. Stop billing me.', expected: 'cancel' },
+    { id: 'files', state: 'What happens to my files if I cancel?', expected: 'follow_up' },
+    { id: 'dashboard', state: 'Loving the new dashboard, thanks!', expected: 'nothing' },
+    { id: 'cheaper', state: 'Is there a cheaper plan? Otherwise I’ll have to leave.', expected: 'follow_up' },
+    { id: 'undecided', state: 'I might cancel, I haven’t decided.', expected: 'follow_up' },
+  ],
+  starter: {
+    questions: [noul('wants_to_cancel', 'Is this customer asking us to cancel their subscription?')],
+    rules: [{ uid: 'r1', when: { question: 'wants_to_cancel', op: 'gte', value: 0.5 }, then: outcome('cancel') }],
+    otherwise: outcome('nothing'),
+    threshold: 0.5,
+  },
+  solution: {
+    questions: [noul('wants_to_cancel', 'Is this customer asking us to cancel their subscription?')],
+    rules: [
+      { uid: 'r1', when: { question: 'wants_to_cancel', op: 'gte', value: 0.9 }, then: outcome('cancel') },
+      { uid: 'r2', when: { question: 'wants_to_cancel', op: 'lt', value: 0.1 }, then: outcome('nothing') },
+    ],
+    otherwise: outcome('follow_up'),
+    threshold: 0.5,
+  },
+  hint: 'The question is fine as it is. Run it, look at the numbers Jev gives the in-between messages, and decide in the rules what each range should do.',
+  lesson:
+    'A yes-or-no answer from Jev is a probability, and where to draw the line is your decision. An action that is hard to undo can wait for a high number, and the uncertain middle can get an outcome of its own. All of that is code, so tuning it never costs another request.',
+}
+
+const noneOfThese: CardPuzzle = {
+  kind: 'cards',
   id: 'none-of-these',
   title: 'None of these',
   brief:
@@ -154,7 +247,8 @@ const noneOfThese: Puzzle = {
 
 const TOPPINGS = ['mushrooms', 'pepperoni', 'olives', 'onions']
 
-const toppings: Puzzle = {
+const toppings: CardPuzzle = {
+  kind: 'cards',
   id: 'toppings',
   title: 'Pick several',
   brief:
@@ -187,4 +281,4 @@ const toppings: Puzzle = {
     'A choice returns exactly one option, which is wrong whenever several can be true or none are. One yes-or-no question per option handles both, and all of them travel in a single request.',
 }
 
-export const PUZZLES: Puzzle[] = [needsReply, noneOfThese, toppings]
+export const PUZZLES: Puzzle[] = [needsReply, houseRules, noneOfThese, toppings, sureEnough, ...CODE_PUZZLES]

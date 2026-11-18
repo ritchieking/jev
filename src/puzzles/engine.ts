@@ -1,5 +1,5 @@
 import type { Answer, Question } from '../../shared/types'
-import type { CardQuestion, Condition, Outcome, Program, Puzzle, Result } from './types'
+import type { CardPuzzle, CardQuestion, Condition, Outcome, Program, Result } from './types'
 
 export const MAX_QUESTIONS = 12
 export const MAX_OPTIONS = 12
@@ -8,7 +8,7 @@ export const MAX_LEVELS = 10
 const NAME = /^[a-z][a-z0-9_]*$/
 
 /** Problems that stop a program from being sent or evaluated, in plain words. Empty means fine. */
-export function validate(puzzle: Puzzle, program: Program): string[] {
+export function validate(puzzle: CardPuzzle, program: Program): string[] {
   const problems: string[] = []
   const { questions } = program
 
@@ -115,7 +115,7 @@ function holds(condition: Condition, answer: Answer): boolean {
  * a solution that is ordinary code: it costs nothing and needs no request.
  * Returns undefined if an answer the rules need is missing.
  */
-export function evaluate(puzzle: Puzzle, program: Program, answers: Record<string, Answer>): Outcome | undefined {
+export function evaluate(puzzle: CardPuzzle, program: Program, answers: Record<string, Answer>): Outcome | undefined {
   const byUid = new Map(program.questions.map((question) => [question.uid, question]))
   const answerTo = (uid: string) => {
     const question = byUid.get(uid)
@@ -147,12 +147,12 @@ export function evaluate(puzzle: Puzzle, program: Program, answers: Record<strin
 }
 
 export function matches(result: Outcome, expected: Outcome): boolean {
-  if (typeof result === 'string' || typeof expected === 'string') return result === expected
+  if (typeof result !== 'object' || typeof expected !== 'object') return result === expected
   return result.length === expected.length && result.every((item) => expected.includes(item))
 }
 
 /** The program as the JavaScript a developer would write around one Jev request. */
-export function toCode(puzzle: Puzzle, program: Program): string {
+export function toCode(puzzle: CardPuzzle, program: Program): string {
   const byUid = new Map(program.questions.map((question) => [question.uid, question]))
   const name = (uid: string) => byUid.get(uid)?.name ?? 'missing'
   const questions = literal(toQuestions(program), 2)

@@ -24,6 +24,21 @@ npm run dev          # page on http://localhost:5173/jev/, forwarding /api to th
 
 `npm run typecheck && npm test && npm run build` should pass before a commit.
 
+## Puzzles
+
+Each puzzle has test cases with known answers, a `starter` that runs but gets some wrong,
+and a reference `solution`. Card puzzles (`src/puzzles/puzzles.ts`) are solved with question
+cards and rules; code puzzles (`src/puzzles/codePuzzles.ts`) by writing
+`async function solve(input, jev)`, which runs in a Web Worker in the visitor's browser.
+
+```sh
+npm run check-puzzles              # every starter must fail, every solution must pass
+npm run check-puzzles -- headcount # just one
+```
+
+The check talks to the real model through the local proxy. Answers are cached, so it only
+spends tokens on puzzles that changed.
+
 ## The API key
 
 Create `.env` in the repo root (it is gitignored) with one line:

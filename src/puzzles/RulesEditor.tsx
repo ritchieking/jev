@@ -1,7 +1,7 @@
-import type { CardQuestion, Condition, Program, Puzzle, Result, Rule } from './types'
+import type { CardPuzzle, CardQuestion, Condition, Program, Result, Rule } from './types'
 
 type Props = {
-  puzzle: Puzzle
+  puzzle: CardPuzzle
   program: Program
   onChange: (next: Program) => void
   newUid: () => string
@@ -173,7 +173,7 @@ function ConditionFields({ rule, index, question, onChange }: ConditionProps) {
 type ResultSelectProps = {
   label: string
   result: Result
-  puzzle: Puzzle
+  puzzle: CardPuzzle
   questions: CardQuestion[]
   onChange: (result: Result) => void
 }

@@ -1,19 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { costUsd, type Answer, type AskResponse, type Question } from '../../shared/types'
-import { JsonView } from '../components/JsonView'
-import { ApiError, ask } from '../lib/api'
-import { evaluate, matches, MAX_QUESTIONS, toCode, toQuestions, validate } from './engine'
-import { QuestionEditor } from './QuestionEditor'
-import { RulesEditor } from './RulesEditor'
-import type { CardQuestion, Outcome, Program, Puzzle } from './types'
-
-// Jev's answers this session, by exact request. Going back to an earlier wording,
-// or changing only the rules, shows results again without sending anything.
-const answered = new Map<string, AskResponse>()
-const requestKey = (state: string, questions: Record<string, Question>) => JSON.stringify([state, questions])
-
-let uidCounter = 0
-const newUid = () => `new-${++uidCounter}`
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { CardsBench } from './CardsBench'
+import { CodeBench } from './CodeBench'
+import { toCode } from './engine'
+import type { Program, Puzzle } from './types'
 
 type Props = {
   puzzle: Puzzle
@@ -23,69 +12,42 @@ type Props = {
   onSolved: () => void
 }
 
+type View = 'cards' | 'code'
+
 export function PuzzleView({ puzzle, technical, nextHref, onSolved }: Props) {
-  const [program, setProgram] = useState<Program>(puzzle.starter)
-  const [running, setRunning] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  // Bumped when `answered` gains entries, since a module-level Map can't trigger a render.
-  const [, setVersion] = useState(0)
-
-  const problems = useMemo(() => validate(puzzle, program), [puzzle, program])
-  const questions = useMemo(() => (problems.length === 0 ? toQuestions(program) : null), [problems, program])
-  // A stable string for effects: the questions object is rebuilt on every edit.
-  const questionsKey = questions ? JSON.stringify(questions) : ''
-
-  const rows = puzzle.cases.map((testCase) => {
-    const response = questions ? answered.get(requestKey(testCase.state, questions)) : undefined
-    const result = response ? evaluate(puzzle, program, response.answers) : undefined
-    return { testCase, response, result, correct: result !== undefined && matches(result, testCase.expected) }
-  })
-  const waiting = rows.filter((row) => !row.response).length
-  const right = rows.filter((row) => row.correct).length
-  const solved = waiting === 0 && right === rows.length
-  const tokens = rows.reduce((sum, row) => sum + (row.response?.usage.input_tokens ?? 0), 0)
+  const [view, setView] = useState<View>(puzzle.kind)
+  // Card puzzles keep the cards and any hand-edited code side by side: switching
+  // views loses neither. `code` stays null until the learner types in the editor.
+  const [program, setProgram] = useState<Program | null>(puzzle.kind === 'cards' ? puzzle.starter : null)
+  const [code, setCode] = useState<string | null>(null)
+  const [solved, setSolved] = useState(false)
 
   const onSolvedRef = useRef(onSolved)
   onSolvedRef.current = onSolved
   useEffect(() => {
     if (solved) onSolvedRef.current()
   }, [solved])
+  const onSolvedChange = useCallback((next: boolean) => setSolved(next), [])
 
-  // An in-flight run belongs to the questions it was started with.
-  useEffect(() => setError(null), [questionsKey])
-
-  async function run() {
-    if (!questions) return
-    setRunning(true)
-    setError(null)
-    const missing = puzzle.cases.filter((testCase) => !answered.has(requestKey(testCase.state, questions)))
-    const settled = await Promise.allSettled(
-      missing.map(async (testCase) => {
-        answered.set(requestKey(testCase.state, questions), await ask({ state: testCase.state, questions }))
-      }),
-    )
-    const failure = settled.find((outcome) => outcome.status === 'rejected')
-    if (failure) {
-      const reason: unknown = failure.reason
-      setError(reason instanceof ApiError ? describe(reason) : 'Something went wrong. Try again.')
+  function showSolution() {
+    if (puzzle.kind === 'cards') {
+      setProgram(puzzle.solution)
+      setCode(null)
+    } else {
+      setCode(puzzle.solution)
     }
-    setVersion((version) => version + 1)
-    setRunning(false)
   }
 
-  const setQuestion = (uid: string, next: CardQuestion) =>
-    setProgram({ ...program, questions: program.questions.map((question) => (question.uid === uid ? next : question)) })
-
-  function addQuestion() {
-    const taken = new Set(program.questions.map((question) => question.name))
-    let n = program.questions.length + 1
-    while (taken.has(`question_${n}`)) n += 1
-    const blank: CardQuestion = { uid: newUid(), name: `question_${n}`, type: 'noul', instructions: '', options: [], levels: [] }
-    setProgram({ ...program, questions: [...program.questions, blank] })
-  }
-
-  const count = puzzle.cases.length
-  const plural = `${puzzle.input}s`
+  const toggle =
+    puzzle.kind === 'cards' ? (
+      <div className="segmented small-seg" role="group" aria-label="How to write the solution">
+        {(['cards', 'code'] as const).map((option) => (
+          <button key={option} type="button" aria-pressed={view === option} onClick={() => setView(option)}>
+            {option === 'cards' ? 'Cards' : 'Code'}
+          </button>
+        ))}
+      </div>
+    ) : null
 
   return (
     <div className="stack">
@@ -95,7 +57,7 @@ export function PuzzleView({ puzzle, technical, nextHref, onSolved }: Props) {
         <details className="hint">
           <summary>Hint</summary>
           <p>{puzzle.hint}</p>
-          <button type="button" className="quiet" onClick={() => setProgram(puzzle.solution)}>
+          <button type="button" className="quiet" onClick={showSolution}>
             Show me a solution
           </button>
         </details>
@@ -114,153 +76,28 @@ export function PuzzleView({ puzzle, technical, nextHref, onSolved }: Props) {
         </div>
       )}
 
-      <div className="workbench">
-        <div className="panel">
-          <div className="step-head">
-            <h3>
-              <span className="step">1</span> Ask Jev
-            </h3>
-            <button type="button" className="link" onClick={() => setProgram(puzzle.starter)}>
-              Start over
-            </button>
-          </div>
-          <p className="muted small">These questions are sent with each {puzzle.input}, all in one request.</p>
-          <div className="qcards">
-            {program.questions.map((question) => (
-              <QuestionEditor
-                key={question.uid}
-                question={question}
-                onChange={(next) => setQuestion(question.uid, next)}
-                onRemove={() => setProgram({ ...program, questions: program.questions.filter((other) => other.uid !== question.uid) })}
-              />
-            ))}
-          </div>
-          {program.questions.length < MAX_QUESTIONS && (
-            <button type="button" className="add" onClick={addQuestion}>
-              + Add a question
-            </button>
-          )}
-
-          <div className="step-head second">
-            <h3>
-              <span className="step">2</span> Decide
-            </h3>
-          </div>
-          <p className="muted small">Your code turns the answers into a result. Changing it doesn’t need a new request.</p>
-          <RulesEditor puzzle={puzzle} program={program} onChange={setProgram} newUid={newUid} />
-
-          {technical && (
-            <>
-              {questions && (
-                <JsonView
-                  label={`Request for the first ${puzzle.input} · POST api.typesafe.ai/v1/systemone`}
-                  value={{ model: rows[0]?.response?.model ?? 'jev-1.14.0', state: puzzle.cases[0]!.state, questions }}
-                />
-              )}
-              <figure className="json">
-                <figcaption>The same solution as code</figcaption>
-                <pre className="code">{toCode(puzzle, program)}</pre>
-              </figure>
-            </>
-          )}
-        </div>
-
-        <div className="panel">
-          <div className="step-head">
-            <h3>
-              <span className="step">3</span> Check
-            </h3>
-            <p className="tally" role="status">
-              {waiting === count ? `${count} ${plural}` : `${right} of ${count} right`}
-            </p>
-          </div>
-
-          {problems.length > 0 ? (
-            <ul className="problems">
-              {problems.map((problem) => (
-                <li key={problem}>{problem}</li>
-              ))}
-            </ul>
-          ) : waiting > 0 ? (
-            <div className="run-row">
-              <button type="button" className="primary" onClick={run} disabled={running}>
-                {running ? 'Asking Jev…' : `Ask Jev about ${waiting === count ? `all ${count}` : `${waiting} more`}`}
-              </button>
-            </div>
-          ) : (
-            <p className="muted small stats">
-              {count} requests · {tokens.toLocaleString('en-US')} tokens · ${costUsd(tokens).toFixed(6)}
-            </p>
-          )}
-          {error && <p className="error small">{error}</p>}
-
-          <ul className="cases">
-            {rows.map(({ testCase, response, result, correct }) => (
-              <li key={testCase.id} className={response ? (correct ? 'right' : 'wrong') : undefined}>
-                <p className="case-state">{testCase.state}</p>
-                {response && (
-                  <p className="case-answers">
-                    {Object.entries(response.answers).map(([name, answer]) => (
-                      <span key={name} className="answer-chip">
-                        <span className="mono">{name}</span> {summarize(answer)}
-                      </span>
-                    ))}
-                  </p>
-                )}
-                <p className="case-result">
-                  {response ? (
-                    <>
-                      <span className="verdict">{correct ? '✓ Right' : '✗ Wrong'}</span>
-                      <span>
-                        Yours: <strong>{show(puzzle, result)}</strong>
-                      </span>
-                      {!correct && (
-                        <span>
-                          Should be: <strong>{show(puzzle, testCase.expected)}</strong>
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="muted">
-                      Should be: <strong>{show(puzzle, testCase.expected)}</strong>
-                    </span>
-                  )}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      {puzzle.kind === 'cards' && program && view === 'cards' ? (
+        <CardsBench
+          puzzle={puzzle}
+          program={program}
+          onChange={setProgram}
+          technical={technical}
+          toggle={toggle}
+          onEditAsCode={() => setView('code')}
+          onSolvedChange={onSolvedChange}
+        />
+      ) : (
+        <CodeBench
+          puzzle={puzzle}
+          code={code ?? (puzzle.kind === 'cards' ? toCode(puzzle, program ?? puzzle.starter) : puzzle.starter)}
+          onChange={setCode}
+          onReset={() => setCode(null)}
+          resetLabel={puzzle.kind === 'cards' ? 'Reset to the cards' : 'Start over'}
+          technical={technical}
+          toggle={toggle}
+          onSolvedChange={onSolvedChange}
+        />
+      )}
     </div>
   )
-}
-
-const pct = (p: number) => `${Math.round(p * 100)}%`
-
-function summarize(answer: Answer): string {
-  switch (answer.type) {
-    case 'noul':
-      return pct(answer.noul)
-    case 'choice':
-      return `${answer.choice} ${pct(answer.probabilities[answer.choice] ?? 0)}`
-    case 'score':
-      return answer.score.toFixed(2)
-  }
-}
-
-function show(puzzle: Puzzle, result: Outcome | undefined): string {
-  if (result === undefined) return 'no result'
-  if (typeof result !== 'string') return result.length === 0 ? 'none' : result.join(', ')
-  if (puzzle.result.kind === 'one') {
-    // A pick that isn't one of the puzzle's outcomes is shown as Jev returned it.
-    return puzzle.result.outcomes.find((outcome) => outcome.id === result)?.label ?? result
-  }
-  return result
-}
-
-function describe(error: ApiError): string {
-  if (error.code === 'not_configured') return 'The server doesn’t have a Jev key yet, so live answers are off.'
-  if (error.retryAfterSeconds) return `${error.message} Try again in ${error.retryAfterSeconds}s.`
-  if (error.code === 'jev_rejected' && typeof error.detail === 'string') return `${error.message} ${error.detail}`
-  return error.message
 }

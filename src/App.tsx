@@ -46,7 +46,7 @@ export function App() {
       </header>
       <main>
         {tab === 'explainer' && <Explainer mode={mode} />}
-        {tab === 'performance' && <Performance />}
+        {tab === 'performance' && <Performance mode={mode} />}
         {tab === 'puzzles' && <Puzzles mode={mode} selected={rest} />}
       </main>
     </div>

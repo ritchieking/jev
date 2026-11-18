@@ -45,33 +45,53 @@ export type Program = {
   threshold: number
 }
 
+/** A result: an outcome id, a set of items (order doesn't matter), or a number. */
+export type Outcome = string | string[] | number
+
 export type PuzzleCase = {
   id: string
-  /** The context sent to Jev. */
+  /** The context sent to Jev, and the input handed to `solve` in code. */
   state: string
-  /** The right result: an outcome id, or the items that belong in the set. */
-  expected: string | string[]
+  /** The right result. */
+  expected: Outcome
 }
 
-export type Puzzle = {
+type PuzzleBase = {
   id: string
   title: string
   /** The situation and the task, in a sentence or two. */
   brief: string
-  /** What one input is called, e.g. "message" or "order". */
+  /** What one input is called, e.g. "message" or "order". Also the parameter name in code. */
   input: string
-  result:
-    | { kind: 'one'; outcomes: { id: string; label: string }[] }
-    /** Any subset of `items`; a noul named after an item adds it when answered yes. */
-    | { kind: 'set'; noun: string; items: string[] }
   cases: PuzzleCase[]
-  /** Where the learner begins. It runs, and gets some cases wrong. */
-  starter: Program
-  /** A reference solution, checked against the real model by `npm run check-puzzles`. */
-  solution: Program
   hint: string
   /** Shown once solved: what the puzzle was demonstrating. */
   lesson: string
 }
 
-export type Outcome = string | string[]
+/** Solved with question cards and rules: one request per input. Can also be edited as code. */
+export type CardPuzzle = PuzzleBase & {
+  kind: 'cards'
+  result:
+    | { kind: 'one'; outcomes: { id: string; label: string }[] }
+    /** Any subset of `items`; a noul named after an item adds it when answered yes. */
+    | { kind: 'set'; noun: string; items: string[] }
+  /** Where the learner begins. It runs, and gets some cases wrong. */
+  starter: Program
+  /** A reference solution, checked against the real model by `npm run check-puzzles`. */
+  solution: Program
+}
+
+/**
+ * Solved by writing `async function solve(input, jev)`: for puzzles where the questions
+ * depend on the input, or where one request decides what the next one asks.
+ */
+export type CodePuzzle = PuzzleBase & {
+  kind: 'code'
+  /** What `solve` has to return, in words. */
+  returns: string
+  starter: string
+  solution: string
+}
+
+export type Puzzle = CardPuzzle | CodePuzzle

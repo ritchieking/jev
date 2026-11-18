@@ -2,19 +2,20 @@ import { describe, expect, it } from 'vitest'
 import type { Answer } from '../../shared/types'
 import { evaluate, matches, toCode, toQuestions, validate } from './engine'
 import { PUZZLES } from './puzzles'
-import type { Program, Puzzle } from './types'
+import type { CardPuzzle, Program } from './types'
 
-const puzzle = (id: string): Puzzle => PUZZLES.find((candidate) => candidate.id === id)!
+const CARD_PUZZLES = PUZZLES.filter((candidate): candidate is CardPuzzle => candidate.kind === 'cards')
+const puzzle = (id: string): CardPuzzle => CARD_PUZZLES.find((candidate) => candidate.id === id)!
 const noul = (p: number): Answer => ({ type: 'noul', noul: p })
 const choice = (pick: string, p: number): Answer => ({ type: 'choice', choice: pick, confidence: p, probabilities: { [pick]: p } })
 
 describe('the shipped puzzles', () => {
-  it.each(PUZZLES)('$id has a valid starter and solution', (shipped) => {
+  it.each(CARD_PUZZLES)('$id has a valid starter and solution', (shipped) => {
     expect(validate(shipped, shipped.starter)).toEqual([])
     expect(validate(shipped, shipped.solution)).toEqual([])
   })
 
-  it.each(PUZZLES)('$id only expects results it can produce', (shipped) => {
+  it.each(CARD_PUZZLES)('$id only expects results it can produce', (shipped) => {
     for (const testCase of shipped.cases) {
       if (shipped.result.kind === 'one') {
         expect(shipped.result.outcomes.map((outcome) => outcome.id)).toContain(testCase.expected)
@@ -100,6 +101,9 @@ describe('matches', () => {
     expect(matches([], [])).toBe(true)
     expect(matches('reply', 'reply')).toBe(true)
     expect(matches('reply', ['reply'])).toBe(false)
+    expect(matches(3, 3)).toBe(true)
+    expect(matches(3, 4)).toBe(false)
+    expect(matches(3, '3')).toBe(false)
   })
 })
 
