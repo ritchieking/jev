@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.local
+*.tsbuildinfo
+.tsbuild
+.claude/
+# Proxy's running token tally (see server/budget.ts)
+data/

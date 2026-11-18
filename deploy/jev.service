@@ -1,0 +1,18 @@
+# systemd user unit for the Jev explainer's proxy.
+# Install: cp deploy/jev.service ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now jev
+[Unit]
+Description=Jev explainer proxy (holds the TypeSafe key; the page itself is on GitHub Pages)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/home/ritchie/repos/jev
+# The leading "-" lets the service start before .env exists; it then answers 503 "not_configured".
+EnvironmentFile=-/home/ritchie/repos/jev/.env
+# Public-IP VPS: the server binds 127.0.0.1 and is exposed only through the Cloudflare Tunnel.
+ExecStart=/home/ritchie/.local/share/fnm/node-versions/v24.18.0/installation/bin/node /home/ritchie/repos/jev/node_modules/tsx/dist/cli.mjs server/index.ts
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
