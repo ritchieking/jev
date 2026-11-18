@@ -1,0 +1,211 @@
+{
+  "recordedAt": "2026-11-18",
+  "model": "jev-1.14.0",
+  "responses": {
+    "double-charge": {
+      "model": "jev-1.14.0",
+      "answers": {
+        "refund": {
+          "type": "noul",
+          "noul": 0.99
+        },
+        "team": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 1,
+            "technical": 0,
+            "account": 0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.41,
+          "confidence": 0.38,
+          "legend": {
+            "0": "Can wait",
+            "1": "Needs attention this week",
+            "2": "Needs attention today"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.59,
+            "2": 0.41
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 421,
+        "output_tokens": 69
+      },
+      "meta": {
+        "upstream_ms": 47
+      }
+    },
+    "outage": {
+      "model": "jev-1.14.0",
+      "answers": {
+        "refund": {
+          "type": "noul",
+          "noul": 0.03
+        },
+        "team": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 0,
+            "technical": 1,
+            "account": 0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 2,
+          "confidence": 1,
+          "legend": {
+            "0": "Can wait",
+            "1": "Needs attention this week",
+            "2": "Needs attention today"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0,
+            "2": 1
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 424,
+        "output_tokens": 69
+      },
+      "meta": {
+        "upstream_ms": 55
+      }
+    },
+    "profile": {
+      "model": "jev-1.14.0",
+      "answers": {
+        "refund": {
+          "type": "noul",
+          "noul": 0.01
+        },
+        "team": {
+          "type": "choice",
+          "choice": "account",
+          "confidence": 1,
+          "probabilities": {
+            "billing": 0,
+            "technical": 0,
+            "account": 1
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 0,
+          "confidence": 1,
+          "legend": {
+            "0": "Can wait",
+            "1": "Needs attention this week",
+            "2": "Needs attention today"
+          },
+          "probabilities": {
+            "0": 1,
+            "1": 0,
+            "2": 0
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 421,
+        "output_tokens": 69
+      },
+      "meta": {
+        "upstream_ms": 41
+      }
+    },
+    "mixed": {
+      "model": "jev-1.14.0",
+      "answers": {
+        "refund": {
+          "type": "noul",
+          "noul": 0.88
+        },
+        "team": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 0.89,
+          "probabilities": {
+            "billing": 0.93,
+            "technical": 0.06,
+            "account": 0.01
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.27,
+          "confidence": 0.58,
+          "legend": {
+            "0": "Can wait",
+            "1": "Needs attention this week",
+            "2": "Needs attention today"
+          },
+          "probabilities": {
+            "0": 0,
+            "1": 0.72,
+            "2": 0.28
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 436,
+        "output_tokens": 69
+      },
+      "meta": {
+        "upstream_ms": 49
+      }
+    },
+    "recruiter": {
+      "model": "jev-1.14.0",
+      "answers": {
+        "refund": {
+          "type": "noul",
+          "noul": 0.01
+        },
+        "team": {
+          "type": "choice",
+          "choice": "account",
+          "confidence": 0.83,
+          "probabilities": {
+            "billing": 0.05,
+            "technical": 0.06,
+            "account": 0.89
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 0.57,
+          "confidence": 0.36,
+          "legend": {
+            "0": "Can wait",
+            "1": "Needs attention this week",
+            "2": "Needs attention today"
+          },
+          "probabilities": {
+            "0": 0.43,
+            "1": 0.57,
+            "2": 0
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 423,
+        "output_tokens": 69
+      },
+      "meta": {
+        "upstream_ms": 41
+      }
+    }
+  }
+}
