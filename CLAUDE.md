@@ -14,10 +14,12 @@ Jev's docs index is `https://docs.typesafe.ai/llms.txt`; append `.md` to a docs 
   budget in `server/app.ts`. Don't add a route that skips them.
 - "Code mode" for puzzles must run visitors' code in their browser, never on the server.
 - No real key in tests: `buildApp` takes `fetch` as a dependency, so fake the upstream.
-- Tabs are hash-based (`#explainer`, `#performance`, `#puzzles/<id>`); Pages can't route paths.
+- Two pages, hash-based because Pages can't route paths: `#basics` ("Using Jev", the default) and
+  `#puzzles/<id>`. Unknown hashes, including the old `#explainer` and `#performance`, show basics.
+- Ritchie's feedback on the first draft is in `~/sync/Jev capabilities explainer - feedback.md`.
 - Don't state Jev numbers (cost, speed, accuracy) on the page unless we measured them or
   the page attributes them to TypeSafe.
-- The Explainer's sample messages and questions are in `src/data/sample.ts`; Jev's real answers
+- The basics page's example (film-festival pitches, three questions) is in `src/data/sample.ts`; Jev's real answers
   to them are in `src/data/recorded.json`. After changing either, run `npm run record` (needs the
   `jev` service up) and reread each preset's `notice` against the new answers.
 - Jev credits are Ritchie's own money. Develop and browser-test against cached answers or a fake
@@ -32,8 +34,13 @@ Jev's docs index is `https://docs.typesafe.ai/llms.txt`; append `.md` to a docs 
   requests go back to the page (`sandbox.ts`), which forwards only `state` and `questions`, caps
   requests per input and stops the worker after 30 seconds. Don't add a way to load code from a
   URL or from another visitor: the sandbox assumes people only run code they typed themselves.
-- The Performance tab makes no requests. Its sums are arithmetic on the sliders; its measured
-  figures are TypeSafe's (quoted from the parallel-questions cookbook, with a link) or come from
-  `src/data/recorded.json`. Don't add a benchmark that spends credits.
-- Chart colours are `--series-1`/`--series-2` in `styles.css`, checked as a pair for colour-blind
-  separation on both surfaces. Re-check before changing them or adding a third.
+- There is no Performance page (Ritchie cut it). Time and tokens are shown beside each request, from
+  the real response. The basics page's "time and tokens" figures are computed from
+  `src/data/recorded.json` or are TypeSafe's, quoted with a link. Don't add a benchmark that spends credits.
+- Design: light mode only, on purpose; don't add dark styles. Fonts and colour tokens at the top of
+  `src/styles.css` mirror `~/repos/ritchieking.github.io/css/style.css`. `--page` is the background
+  Ritchie said they will choose later.
+- The three question types have one colour each (`--cat-noul`, `--cat-choice`, `--cat-score`), checked
+  as a set for colour-blind separation and contrast on `--surface`. Re-check before changing them.
+- In technical mode the basics page shows only request and response JSON for the example; keep the
+  charts out of it.

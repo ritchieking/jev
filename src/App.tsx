@@ -1,54 +1,50 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useHashTab } from './lib/useHashTab'
-import { Explainer } from './tabs/Explainer'
-import { Performance } from './tabs/Performance'
+import { Basics } from './tabs/Basics'
 import { Puzzles } from './tabs/Puzzles'
 
-const TABS = ['explainer', 'performance', 'puzzles'] as const
-type Tab = (typeof TABS)[number]
+const PAGES = ['basics', 'puzzles'] as const
+type Page = (typeof PAGES)[number]
 
-const LABELS: Record<Tab, string> = {
-  explainer: 'Explainer',
-  performance: 'Performance',
-  puzzles: 'Puzzles',
+const LABELS: Record<Page, string> = {
+  basics: 'Jev basics',
+  puzzles: 'Jev puzzles',
 }
 
 export type Mode = 'conceptual' | 'technical'
 
 export function App() {
-  const { tab, rest } = useHashTab(TABS)
+  const { tab: page, rest } = useHashTab(PAGES)
   const [mode, setMode] = useState<Mode>('conceptual')
 
+  // A new page starts at its top; moving between puzzles stays where you are.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    document.title = page === 'basics' ? 'Using Jev' : 'Jev puzzles'
+  }, [page])
+
   return (
-    <div className="page">
-      <header className="masthead">
-        <h1>How Jev works</h1>
-        <p className="lede">
-          Jev is a model that doesn’t write. You hand it some context and a set of questions, and it answers each one
-          with probabilities.
-        </p>
-        <div className="controls">
-          <nav className="tabs" aria-label="Sections">
-            {TABS.map((name) => (
-              <a key={name} href={`#${name}`} aria-current={tab === name ? 'page' : undefined}>
-                {LABELS[name]}
-              </a>
-            ))}
-          </nav>
-          <div className="segmented" role="group" aria-label="Level of detail">
-            {(['conceptual', 'technical'] as const).map((option) => (
-              <button key={option} type="button" aria-pressed={mode === option} onClick={() => setMode(option)}>
-                {option === 'conceptual' ? 'Conceptual' : 'Technical'}
-              </button>
-            ))}
-          </div>
+    <>
+      <header className="bar">
+        <nav aria-label="Pages">
+          {PAGES.map((name) => (
+            <a key={name} href={`#${name}`} aria-current={page === name ? 'page' : undefined}>
+              {LABELS[name]}
+            </a>
+          ))}
+        </nav>
+        <div className="segmented" role="group" aria-label="Level of detail">
+          {(['conceptual', 'technical'] as const).map((option) => (
+            <button key={option} type="button" aria-pressed={mode === option} onClick={() => setMode(option)}>
+              {option === 'conceptual' ? 'Conceptual' : 'Technical'}
+            </button>
+          ))}
         </div>
       </header>
-      <main>
-        {tab === 'explainer' && <Explainer mode={mode} />}
-        {tab === 'performance' && <Performance mode={mode} />}
-        {tab === 'puzzles' && <Puzzles mode={mode} selected={rest} />}
+      <main className="page">
+        {page === 'basics' && <Basics mode={mode} />}
+        {page === 'puzzles' && <Puzzles mode={mode} selected={rest} />}
       </main>
-    </div>
+    </>
   )
 }

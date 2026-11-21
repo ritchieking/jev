@@ -119,7 +119,7 @@ export function CodeBench({ puzzle, code, onChange, onReset, resetLabel, technic
             <CaseItem
               key={testCase.id}
               state={testCase.state}
-              steps={ran && caseRun ? caseRun.steps.flatMap((step) => (step.response ? [step.response.answers] : [])) : []}
+              steps={ran && caseRun ? caseRun.steps.flatMap((step) => (step.response ? [step.response] : [])) : []}
               verdict={ran && caseRun ? (correct ? 'right' : 'wrong') : undefined}
               yours={show(puzzle, value)}
               expected={show(puzzle, testCase.expected)}

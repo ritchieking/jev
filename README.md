@@ -1,8 +1,8 @@
 # How Jev works
 
-An explainer for [Jev](https://docs.typesafe.ai), TypeSafe's decision model: what its
-question types are, why batching questions is cheap, and puzzles to solve with real
-requests.
+An explainer for [Jev](https://docs.typesafe.ai), TypeSafe's decision model, in two pages:
+"Using Jev" (what you ask it and what it answers, on one running example) and "Jev puzzles"
+(problems to solve with real requests).
 
 Two halves live in this repo:
 
@@ -23,6 +23,13 @@ npm run dev          # page on http://localhost:5173/jev/, forwarding /api to th
 ```
 
 `npm run typecheck && npm test && npm run build` should pass before a commit.
+
+## The basics example
+
+The pitches and the three questions asked about each are in `src/data/sample.ts`. Jev's
+answers to them are recorded in `src/data/recorded.json`, so the page shows real answers
+without sending anything. After changing either, run `npm run record` (five small requests)
+and reread each pitch's `notice` against the new answers.
 
 ## Puzzles
 

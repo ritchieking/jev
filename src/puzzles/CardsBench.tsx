@@ -169,7 +169,7 @@ export function CardsBench({ puzzle, program, onChange, technical, toggle, onEdi
             <CaseItem
               key={testCase.id}
               state={testCase.state}
-              steps={response ? [response.answers] : []}
+              steps={response ? [response] : []}
               verdict={response ? (correct ? 'right' : 'wrong') : undefined}
               yours={show(puzzle, result)}
               expected={show(puzzle, testCase.expected)}

@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
-import type { Answer } from '../../shared/types'
+import type { Answer, AskResponse } from '../../shared/types'
 import type { Outcome, Puzzle } from './types'
 
 type Props = {
   state: string
-  /** Jev's answers for this input, one entry per request, in the order they were made. */
-  steps: Record<string, Answer>[]
+  /** Jev's responses for this input, one per request, in the order they were made. */
+  steps: AskResponse[]
   /** Undefined until this input has been run. */
   verdict: 'right' | 'wrong' | undefined
   /** The solution's result, already in words. */
@@ -21,14 +21,18 @@ export function CaseItem({ state, steps, verdict, yours, expected, error, childr
   return (
     <li className={verdict}>
       <p className="case-state">{state}</p>
-      {steps.map((answers, index) => (
+      {steps.map((response, index) => (
         <p key={index} className="case-answers">
           {steps.length > 1 && <span className="step-label">Request {index + 1}</span>}
-          {Object.entries(answers).map(([name, answer]) => (
+          {Object.entries(response.answers).map(([name, answer]) => (
             <span key={name} className="answer-chip">
               <span className="mono">{name}</span> {summarize(answer)}
             </span>
           ))}
+          {/* What this one request cost: the tokens Jev read and how long it took to answer. */}
+          <span className="request-cost">
+            {response.usage.input_tokens.toLocaleString('en-US')} tokens · {response.meta.upstream_ms} ms
+          </span>
         </p>
       ))}
       <p className="case-result">

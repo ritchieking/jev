@@ -1,4 +1,4 @@
-// Asks Jev the explainer's questions about every preset message and saves the real
+// Asks Jev the basics page's questions about every preset pitch and saves the real
 // answers to src/data/recorded.json, so the page can show them without a request.
 // Goes through the local proxy, so it needs `jev` (or `npm run dev:server`) running.
 //
@@ -7,7 +7,7 @@
 
 import { writeFileSync } from 'node:fs'
 import type { AskRequest, AskResponse } from '../shared/types'
-import { PRESETS, QUESTIONS } from '../src/data/sample'
+import { PRESETS, QUESTIONS, stateOf } from '../src/data/sample'
 
 const PROXY = process.env.JEV_PROXY ?? 'http://127.0.0.1:8686'
 const OUT = new URL('../src/data/recorded.json', import.meta.url)
@@ -25,15 +25,14 @@ async function ask(request: AskRequest): Promise<AskResponse> {
 
 const responses: Record<string, AskResponse> = {}
 for (const preset of PRESETS) {
-  const response = await ask({ state: preset.state, questions: QUESTIONS, fresh: true })
+  const response = await ask({ state: stateOf(preset), questions: QUESTIONS, fresh: true })
   responses[preset.id] = response
-  const { refund, team, urgency } = response.answers
-  console.log(
-    `${preset.id.padEnd(14)} refund=${refund?.type === 'noul' ? refund.noul : '?'}  ` +
-      `team=${team?.type === 'choice' ? JSON.stringify(team.probabilities) : '?'}  ` +
-      `urgency=${urgency?.type === 'score' ? `${urgency.score} ${JSON.stringify(urgency.probabilities)}` : '?'}  ` +
-      `(${response.usage.input_tokens} tok, ${response.meta.upstream_ms} ms)`,
-  )
+  const answers = Object.entries(response.answers).map(([id, answer]) => {
+    if (answer.type === 'noul') return `${id}=${answer.noul}`
+    if (answer.type === 'choice') return `${id}=${JSON.stringify(answer.probabilities)}`
+    return `${id}=${answer.score} ${JSON.stringify(answer.probabilities)}`
+  })
+  console.log(`${preset.id.padEnd(12)} ${answers.join('  ')}  (${response.usage.input_tokens} tok, ${response.meta.upstream_ms} ms)`)
 }
 
 if (!dry) {

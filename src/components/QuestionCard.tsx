@@ -8,8 +8,6 @@ import type {
   ScoreQuestion,
   Structured,
 } from '../../shared/types'
-import { optionKey, useLink, valueKey } from './Highlight'
-import { JsonView, type LinkFor } from './JsonView'
 
 const KIND: Record<Question['type'], { name: string; gloss: string }> = {
   noul: { name: 'Noul', gloss: 'A yes-or-no question. Jev answers with how likely “yes” is.' },
@@ -28,65 +26,34 @@ function text(value: Structured | null | undefined): string {
 }
 
 type Props = {
-  id: string
   question: Question
   /** Undefined until Jev has answered. */
   answer: Answer | undefined
-  /** Show the JSON behind the card, linked to the chart by hover. */
-  technical: boolean
 }
 
 /** One question and Jev's answer to it, drawn in the shape that primitive answers in. */
-export function QuestionCard({ id, question, answer, technical }: Props) {
+export function QuestionCard({ question, answer }: Props) {
   const kind = KIND[question.type]
-  const linked = technical ? id : undefined
   return (
-    <article className="panel question">
+    <article className="panel question" data-kind={question.type}>
       <p className="kind">{kind.name}</p>
       <p className="gloss">{kind.gloss}</p>
       <h3>{text(question.instructions)}</h3>
-      {question.type === 'noul' && <Noul linked={linked} answer={answer?.type === 'noul' ? answer : undefined} />}
-      {question.type === 'choice' && (
-        <Choice linked={linked} question={question} answer={answer?.type === 'choice' ? answer : undefined} />
-      )}
-      {question.type === 'score' && (
-        <Score linked={linked} question={question} answer={answer?.type === 'score' ? answer : undefined} />
-      )}
-      {technical && (
-        <>
-          <JsonView label="Question" value={{ [id]: question }} linkFor={linkForQuestions} />
-          {answer && <JsonView label="Answer" value={{ [id]: answer }} linkFor={linkForAnswers} />}
-        </>
-      )}
+      {question.type === 'noul' && <Noul answer={answer?.type === 'noul' ? answer : undefined} />}
+      {question.type === 'choice' && <Choice question={question} answer={answer?.type === 'choice' ? answer : undefined} />}
+      {question.type === 'score' && <Score question={question} answer={answer?.type === 'score' ? answer : undefined} />}
     </article>
   )
-}
-
-/** Maps a path inside a `questions` object to the chart element it defines. */
-export const linkForQuestions: LinkFor = (path) => {
-  const [id, field, key] = path
-  if (path.length === 3 && field === 'criteria' && key !== 'true' && key !== 'false') return optionKey(String(id), key!)
-  return undefined
-}
-
-/** Maps a path inside an `answers` object to the chart element it produces. */
-export const linkForAnswers: LinkFor = (path, value) => {
-  const [id, field, key] = path
-  if (path.length === 3 && (field === 'probabilities' || field === 'legend')) return optionKey(String(id), key!)
-  if (path.length === 2 && field === 'choice' && typeof value === 'string') return optionKey(String(id), value)
-  if (path.length === 2 && (field === 'noul' || field === 'score')) return valueKey(String(id))
-  return undefined
 }
 
 const NO_ANSWER = <p className="answer-headline muted">No answer yet</p>
 
 // One number: how likely the answer is yes.
-function Noul({ linked, answer }: { linked: string | undefined; answer: NoulAnswer | undefined }) {
-  const link = useLink(linked && valueKey(linked))
+function Noul({ answer }: { answer: NoulAnswer | undefined }) {
   const verdict = !answer ? '' : answer.noul >= 0.7 ? 'Yes' : answer.noul <= 0.3 ? 'No' : 'Unsure'
   return (
     <div className="answer">
-      <div className="linkable" {...link}>
+      <div>
         {answer ? (
           <p className="answer-headline">
             {verdict} <span className="muted">{pct(answer.noul)} likely yes</span>
@@ -112,7 +79,7 @@ function Noul({ linked, answer }: { linked: string | undefined; answer: NoulAnsw
 }
 
 // A probability for every option you offered; the largest is the pick.
-function Choice({ linked, question, answer }: { linked: string | undefined; question: ChoiceQuestion; answer: ChoiceAnswer | undefined }) {
+function Choice({ question, answer }: { question: ChoiceQuestion; answer: ChoiceAnswer | undefined }) {
   return (
     <div className="answer">
       {answer ? (
@@ -126,7 +93,6 @@ function Choice({ linked, question, answer }: { linked: string | undefined; ques
         {Object.entries(question.criteria).map(([name, description]) => (
           <BarRow
             key={name}
-            link={linked && optionKey(linked, name)}
             label={name}
             detail={text(description)}
             p={answer?.probabilities[name]}
@@ -139,15 +105,14 @@ function Choice({ linked, question, answer }: { linked: string | undefined; ques
 }
 
 // A probability for every level; the score is their weighted average, so it can land between levels.
-function Score({ linked, question, answer }: { linked: string | undefined; question: ScoreQuestion; answer: ScoreAnswer | undefined }) {
-  const link = useLink(linked && valueKey(linked))
+function Score({ question, answer }: { question: ScoreQuestion; answer: ScoreAnswer | undefined }) {
   const levels = question.criteria.map((_, i) => i)
   const top = levels.length - 1
   const p = (level: number) => answer?.probabilities[String(level)]
   const likeliest = answer ? levels.reduce((best, level) => ((p(level) ?? 0) > (p(best) ?? 0) ? level : best), 0) : undefined
   return (
     <div className="answer">
-      <div className="linkable" {...link}>
+      <div>
         {answer ? (
           <p className="answer-headline">
             {answer.score.toFixed(2)} <span className="muted">on a scale of 0 to {top}</span>
@@ -169,7 +134,6 @@ function Score({ linked, question, answer }: { linked: string | undefined; quest
         {levels.map((level) => (
           <BarRow
             key={level}
-            link={linked && optionKey(linked, level)}
             label={String(level)}
             detail={text(question.criteria[level])}
             p={p(level)}
@@ -181,12 +145,11 @@ function Score({ linked, question, answer }: { linked: string | undefined; quest
   )
 }
 
-type BarRowProps = { link: string | undefined; label: string; detail: string; p: number | undefined; picked: boolean }
+type BarRowProps = { label: string; detail: string; p: number | undefined; picked: boolean }
 
-function BarRow({ link, label, detail, p, picked }: BarRowProps) {
-  const linkProps = useLink(link)
+function BarRow({ label, detail, p, picked }: BarRowProps) {
   return (
-    <li className={picked ? 'picked' : undefined} {...linkProps}>
+    <li className={picked ? 'picked' : undefined}>
       <span className="bar-label">
         <span className="bar-name">{label}</span>
         {detail && <span className="bar-detail">{detail}</span>}

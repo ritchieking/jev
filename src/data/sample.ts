@@ -1,74 +1,78 @@
 import type { ChoiceQuestion, NoulQuestion, ScoreQuestion } from '../../shared/types'
 
-// The explainer's running example: one support inbox, three questions about each
-// message. Jev's real answers for the preset messages are in recorded.json
-// (regenerate with `npm run record` after changing anything here).
+// The running example on the basics page: pitches sent to a film festival, and the
+// same three questions about each one. Jev's real answers for the preset pitches are
+// in recorded.json (regenerate with `npm run record` after changing anything here).
 
 export const QUESTIONS = {
-  refund: {
+  true_story: {
     type: 'noul',
-    instructions: 'Does the customer ask for a refund?',
+    instructions: 'Is this film based on a true story?',
   } satisfies NoulQuestion,
-  team: {
+  programme: {
     type: 'choice',
-    instructions: 'Which team should handle this message?',
+    instructions: 'Which programme should this film screen in?',
     criteria: {
-      billing: 'Charges, refunds and invoices',
-      technical: 'Bugs, outages and errors',
-      account: 'Logins, profiles and settings',
+      comedy: 'Films meant to make people laugh',
+      horror: 'Films meant to frighten',
+      romance: 'Love stories',
+      documentary: 'Non-fiction films',
     },
   } satisfies ChoiceQuestion,
-  urgency: {
+  scary: {
     type: 'score',
-    instructions: 'How urgent is this message?',
-    criteria: ['Can wait', 'Needs attention this week', 'Needs attention today'],
+    instructions: 'How frightening is this film?',
+    criteria: ['Not frightening at all', 'A little tense', 'Scary', 'Terrifying'],
   } satisfies ScoreQuestion,
 }
 
 export type QuestionId = keyof typeof QUESTIONS
 
 /** `notice` says what Jev's recorded answers show; reread it after re-recording. */
-export type Preset = { id: string; label: string; state: string; notice: string }
+export type Preset = { id: string; title: string; pitch: string; notice: string }
+
+/** What is sent to Jev for a preset: the card's text, title first. */
+export const stateOf = (preset: Preset) => `${preset.title}\n\n${preset.pitch}`
 
 export const PRESETS: Preset[] = [
   {
-    id: 'double-charge',
-    label: 'Charged twice',
-    state:
-      'I was charged twice for my subscription this month, and this is the second time I’ve written about it. Please refund the extra charge.',
+    id: 'room-nine',
+    title: 'Room Nine',
+    pitch:
+      'A night nurse starts to suspect that the patient in room nine died three days ago. Nobody else on the ward can see him.',
     notice:
-      'Jev is sure about the refund and the team. On urgency it is split between two levels, so the score lands between them.',
+      'The programme is not a close call. The score is: Jev puts most of the weight on “Scary” and the rest on “A little tense”, so the number lands between the two.',
   },
   {
-    id: 'outage',
-    label: 'Checkout is down',
-    state:
-      'Your checkout page has been throwing a 500 error since 9 this morning. We’re losing orders every minute. Is anyone looking at this?',
+    id: 'the-keeper',
+    title: 'The Keeper',
+    pitch:
+      'Three years with the last lighthouse keeper in Newfoundland, filmed as the coast guard prepares to automate his light.',
     notice:
-      'Nothing here is a close call, and every question gets a near-certain answer.',
+      'The pitch never says “true” or “documentary”, and Jev gets there anyway: it is certain about the programme, and fairly sure this really happened.',
   },
   {
-    id: 'profile',
-    label: 'No rush',
-    state:
-      'Hi! Not urgent at all, but when you get a chance, could someone show me how to change the email address on my profile?',
+    id: 'bingo',
+    title: 'Bingo Night of the Damned',
+    pitch:
+      'Four retirees discover their bingo hall was built over a gate to hell. The demons that crawl out are bloodthirsty, and terrible at bingo.',
     notice:
-      'The customer says there’s no rush, and the score sits at the bottom of the scale.',
+      'A horror comedy fits two programmes, and the choice comes back nearly even. The option on top is the pick, but the numbers under it tell you how close it was.',
   },
   {
-    id: 'mixed',
-    label: 'Two problems',
-    state:
-      'I cancelled my plan last week, but the cancel button showed an error the first time I tried, and now I can’t tell whether I’ll be billed again. If I am, I want that money back.',
+    id: 'thaw',
+    title: 'Yours, Until the Thaw',
+    pitch:
+      'Two strangers at opposite ends of an Antarctic supply route fall in love by radio over one long winter. Inspired by the director’s grandparents.',
     notice:
-      'The refund is conditional (“if I am”), so the yes is a little less certain. The message also mentions an error, and “technical” picks up some probability.',
+      '“Inspired by the director’s grandparents” is not quite “based on a true story”, and the yes-or-no answer sits in the middle. What to do with an unsure answer is up to you.',
   },
   {
-    id: 'recruiter',
-    label: 'Wrong inbox',
-    state:
-      'Hi, I’m a recruiter at a staffing firm that places customer support agents. Do you have ten minutes this week to talk about your hiring plans?',
+    id: 'idle',
+    title: 'Idle',
+    pitch:
+      'A getaway driver takes one last job to pay for her daughter’s surgery. Then the crew leaves her outside the bank with the engine running.',
     notice:
-      'None of the three teams fits this message, but a choice has to pick from the options you gave it, and it picks one with high probability. Nothing in the answer says “none of these”.',
+      'A heist thriller has no programme here, but a choice has to pick from the options you gave it. The spread-out numbers are a hint; nothing in the answer says “none of these”.',
   },
 ]

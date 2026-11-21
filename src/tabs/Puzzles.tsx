@@ -20,11 +20,14 @@ export function Puzzles({ mode, selected }: { mode: Mode; selected: string }) {
 
   return (
     <section className="stack">
-      <p className="intro">
-        Each puzzle starts with a solution that runs but gets some cases wrong. Fix it by changing what you ask Jev,
-        what you do with the answers, or both. The first five use question cards, with code as an option; the last
-        three need code. The answers are real: each check sends your questions to Jev.
-      </p>
+      <header className="hero small-hero">
+        <h1>Jev puzzles</h1>
+        <p className="lede">
+          Each puzzle starts with a solution that runs but gets some cases wrong. Fix it by changing what you ask Jev,
+          what you do with the answers, or both. The first five use question cards, with code as an option; the last
+          three need code. The answers are real: each check sends your questions to Jev.
+        </p>
+      </header>
       <nav className="puzzle-nav" aria-label="Puzzles">
         {PUZZLES.map((candidate, i) => (
           <a key={candidate.id} href={`#puzzles/${candidate.id}`} aria-current={candidate.id === puzzle.id ? 'page' : undefined}>

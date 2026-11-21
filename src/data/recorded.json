@@ -1,214 +1,229 @@
 {
-  "recordedAt": "2026-11-18",
+  "recordedAt": "2026-11-21",
   "model": "jev-1.14.0",
   "responses": {
-    "double-charge": {
+    "room-nine": {
       "model": "jev-1.14.0",
       "answers": {
-        "refund": {
+        "true_story": {
           "type": "noul",
-          "noul": 0.99
+          "noul": 0.13
         },
-        "team": {
+        "programme": {
           "type": "choice",
-          "choice": "billing",
+          "choice": "horror",
           "confidence": 1,
           "probabilities": {
-            "billing": 1,
-            "technical": 0,
-            "account": 0
+            "comedy": 0,
+            "horror": 1,
+            "romance": 0,
+            "documentary": 0
           }
         },
-        "urgency": {
+        "scary": {
           "type": "score",
-          "score": 1.41,
-          "confidence": 0.38,
+          "score": 1.69,
+          "confidence": 0.61,
           "legend": {
-            "0": "Can wait",
-            "1": "Needs attention this week",
-            "2": "Needs attention today"
+            "0": "Not frightening at all",
+            "1": "A little tense",
+            "2": "Scary",
+            "3": "Terrifying"
           },
           "probabilities": {
-            "0": 0,
-            "1": 0.59,
-            "2": 0.41
+            "0": 0.01,
+            "1": 0.33,
+            "2": 0.62,
+            "3": 0.04
           }
         }
       },
       "usage": {
-        "input_tokens": 421,
-        "output_tokens": 69
+        "input_tokens": 447,
+        "output_tokens": 85
       },
       "meta": {
-        "upstream_ms": 47,
+        "upstream_ms": 171,
         "cached": false
       }
     },
-    "outage": {
+    "the-keeper": {
       "model": "jev-1.14.0",
       "answers": {
-        "refund": {
+        "true_story": {
+          "type": "noul",
+          "noul": 0.78
+        },
+        "programme": {
+          "type": "choice",
+          "choice": "documentary",
+          "confidence": 1,
+          "probabilities": {
+            "comedy": 0,
+            "horror": 0,
+            "romance": 0,
+            "documentary": 1
+          }
+        },
+        "scary": {
+          "type": "score",
+          "score": 0.42,
+          "confidence": 0.58,
+          "legend": {
+            "0": "Not frightening at all",
+            "1": "A little tense",
+            "2": "Scary",
+            "3": "Terrifying"
+          },
+          "probabilities": {
+            "0": 0.6,
+            "1": 0.38,
+            "2": 0.02,
+            "3": 0
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 444,
+        "output_tokens": 85
+      },
+      "meta": {
+        "upstream_ms": 94,
+        "cached": false
+      }
+    },
+    "bingo": {
+      "model": "jev-1.14.0",
+      "answers": {
+        "true_story": {
           "type": "noul",
           "noul": 0.03
         },
-        "team": {
+        "programme": {
           "type": "choice",
-          "choice": "technical",
-          "confidence": 1,
+          "choice": "comedy",
+          "confidence": 0.36,
           "probabilities": {
-            "billing": 0,
-            "technical": 1,
-            "account": 0
+            "comedy": 0.52,
+            "horror": 0.48,
+            "romance": 0,
+            "documentary": 0
           }
         },
-        "urgency": {
+        "scary": {
           "type": "score",
-          "score": 2,
-          "confidence": 1,
+          "score": 1.04,
+          "confidence": 0.61,
           "legend": {
-            "0": "Can wait",
-            "1": "Needs attention this week",
-            "2": "Needs attention today"
+            "0": "Not frightening at all",
+            "1": "A little tense",
+            "2": "Scary",
+            "3": "Terrifying"
           },
           "probabilities": {
-            "0": 0,
-            "1": 0,
-            "2": 1
+            "0": 0.18,
+            "1": 0.61,
+            "2": 0.21,
+            "3": 0
           }
         }
       },
       "usage": {
-        "input_tokens": 424,
-        "output_tokens": 69
+        "input_tokens": 457,
+        "output_tokens": 84
       },
       "meta": {
-        "upstream_ms": 55,
+        "upstream_ms": 27,
         "cached": false
       }
     },
-    "profile": {
+    "thaw": {
       "model": "jev-1.14.0",
       "answers": {
-        "refund": {
+        "true_story": {
           "type": "noul",
-          "noul": 0.01
+          "noul": 0.39
         },
-        "team": {
+        "programme": {
           "type": "choice",
-          "choice": "account",
+          "choice": "romance",
           "confidence": 1,
           "probabilities": {
-            "billing": 0,
-            "technical": 0,
-            "account": 1
+            "comedy": 0,
+            "horror": 0,
+            "romance": 1,
+            "documentary": 0
           }
         },
-        "urgency": {
+        "scary": {
           "type": "score",
-          "score": 0,
-          "confidence": 1,
+          "score": 0.22,
+          "confidence": 0.79,
           "legend": {
-            "0": "Can wait",
-            "1": "Needs attention this week",
-            "2": "Needs attention today"
+            "0": "Not frightening at all",
+            "1": "A little tense",
+            "2": "Scary",
+            "3": "Terrifying"
           },
           "probabilities": {
-            "0": 1,
-            "1": 0,
-            "2": 0
+            "0": 0.79,
+            "1": 0.21,
+            "2": 0,
+            "3": 0
           }
         }
       },
       "usage": {
-        "input_tokens": 421,
-        "output_tokens": 69
+        "input_tokens": 453,
+        "output_tokens": 84
       },
       "meta": {
-        "upstream_ms": 41,
+        "upstream_ms": 39,
         "cached": false
       }
     },
-    "mixed": {
+    "idle": {
       "model": "jev-1.14.0",
       "answers": {
-        "refund": {
+        "true_story": {
           "type": "noul",
-          "noul": 0.88
+          "noul": 0.11
         },
-        "team": {
+        "programme": {
           "type": "choice",
-          "choice": "billing",
-          "confidence": 0.89,
+          "choice": "horror",
+          "confidence": 0.31,
           "probabilities": {
-            "billing": 0.93,
-            "technical": 0.06,
-            "account": 0.01
+            "comedy": 0.38,
+            "horror": 0.48,
+            "romance": 0.09,
+            "documentary": 0.05
           }
         },
-        "urgency": {
+        "scary": {
           "type": "score",
-          "score": 1.27,
+          "score": 1.35,
           "confidence": 0.58,
           "legend": {
-            "0": "Can wait",
-            "1": "Needs attention this week",
-            "2": "Needs attention today"
+            "0": "Not frightening at all",
+            "1": "A little tense",
+            "2": "Scary",
+            "3": "Terrifying"
           },
           "probabilities": {
-            "0": 0,
-            "1": 0.72,
-            "2": 0.28
+            "0": 0.04,
+            "1": 0.6,
+            "2": 0.34,
+            "3": 0.02
           }
         }
       },
       "usage": {
-        "input_tokens": 436,
-        "output_tokens": 69
+        "input_tokens": 448,
+        "output_tokens": 85
       },
       "meta": {
-        "upstream_ms": 49,
-        "cached": false
-      }
-    },
-    "recruiter": {
-      "model": "jev-1.14.0",
-      "answers": {
-        "refund": {
-          "type": "noul",
-          "noul": 0.01
-        },
-        "team": {
-          "type": "choice",
-          "choice": "account",
-          "confidence": 0.83,
-          "probabilities": {
-            "billing": 0.05,
-            "technical": 0.06,
-            "account": 0.89
-          }
-        },
-        "urgency": {
-          "type": "score",
-          "score": 0.57,
-          "confidence": 0.36,
-          "legend": {
-            "0": "Can wait",
-            "1": "Needs attention this week",
-            "2": "Needs attention today"
-          },
-          "probabilities": {
-            "0": 0.43,
-            "1": 0.57,
-            "2": 0
-          }
-        }
-      },
-      "usage": {
-        "input_tokens": 423,
-        "output_tokens": 69
-      },
-      "meta": {
-        "upstream_ms": 41,
+        "upstream_ms": 29,
         "cached": false
       }
     }
